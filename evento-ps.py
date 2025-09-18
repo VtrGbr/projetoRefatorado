@@ -1,4 +1,5 @@
 import random
+from local import Local
 
 class Participante:
     def __init__(self, nome, email):
@@ -60,6 +61,22 @@ class Evento:
         self.surveys = []
         self.feedbacks = []
         self.speakers = []
+        self.local = None
+
+    def reservar_local(self, local):
+        if local.verificar_disponibilidade():
+            self.local = local
+            local.reservar()
+            print(f"Local '{local.nome}' reservado para o evento '{self.nome}'.")
+        else:
+            print("Local não disponível.")
+    
+    def listar_local(self):
+        if self.local:
+            print(f"Local do evento: {self.local.nome} em {self.local.endereco}")
+            print(f"Capacidade: {self.local.capacidade}")
+        else:
+            print("Nenhum local reservado para este evento.")
 
     def criar_survey(self, titulo, perguntas):
         survey = Survey(titulo, perguntas)
@@ -194,6 +211,7 @@ class SistemaEventos:
             print("7. Adicionar palestrante")
             print("8. Listar palestrantes")
             print("9. Remover palestrante")
+            print("10. Reservar local")
             print("0. Voltar")
             op = input("Opção: ")
             if   op == '1': self.criar_evento()
@@ -205,9 +223,32 @@ class SistemaEventos:
             elif op == '7': self.adicionar_speaker_evento()
             elif op == '8': self.listar_speakers_evento()
             elif op == '9': self.remover_speaker_evento()
+            elif op == '10': self.reservar_local_evento()
             elif op == '0': break
             else: print("Inválido.")
 
+    def reservar_local_evento(self):
+        sel = self.selecionar_evento()
+        if not sel: return
+        
+        # Exemplo de locais disponíveis (isso poderia vir de um banco de dados)
+        local1 = Local("Centro de Convenções", "Av. Principal, 123", 500)
+        local2 = Local("Salão Central", "Rua Secundária, 456", 200)
+
+        print("Locais disponíveis:")
+        print(f"1. {local1.nome} ({local1.endereco}) - Capacidade: {local1.capacidade}")
+        print(f"2. {local2.nome} ({local2.endereco}) - Capacidade: {local2.capacidade}")
+        
+        try:
+            op_local = int(input("Escolha um local: "))
+            if op_local == 1:
+                self.eventos[sel].reservar_local(local1)
+            elif op_local == 2:
+                self.eventos[sel].reservar_local(local2)
+            else:
+                print("Opção inválida.")
+        except (ValueError, IndexError):
+            print("Seleção inválida.")
 
     def gerenciar_participante(self):
         while True:

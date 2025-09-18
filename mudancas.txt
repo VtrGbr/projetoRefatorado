@@ -1,0 +1,23 @@
+Participantes:
+    Adicionar encapsulamento
+
+
+
+Gerenciamento de eventos:
+    1. Ao cancelar um evento, mandar para o email dos parcipantes que o evento foi cancelado
+    2. Talvez usar os feedbacks para fazer algo sobre estatística
+
+Gerenciamento de participantes:
+    1.Adicionar verificação para o email ter o @
+
+Gerenciamento de fornecedores:
+    1. Ao atualizar o status de fornecedor informar melhor que o índice do fornecedor é a posição em que ele se encotra na lista
+    2. Ao registrar despesa fazer uma verificação para que o usuário não retire dinheiro além do que foi fornecido
+    
+
+
+Mundança geral:
+    1. Usar banco de dados
+    2. Vê algo sobre como melhorar o sistema de data
+    3. Mostrar um relatório sobre cada evento 
+        3.1 Quando o programa for encerrado, enviar esse relatório para o email cadastrado como organizador
