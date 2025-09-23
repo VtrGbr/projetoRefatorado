@@ -56,4 +56,4 @@ Implemented Features
         adicionar_fornecedor_evento(), listar_fornecedores_evento(), atualizar_status_fornecedor_evento()
 
         Vendor status tracking (e.g. Pendente, Confirmado)
-teste
+**Implementei a 10º funcionalidade, porém ao integrar ao banco de dados houve alguns erros, então por enquanto irei deixar assim e nesta semana irei consertar e colocar o banco de dados**
