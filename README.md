@@ -1,62 +1,80 @@
-# Event-Planning-Management-System
-Atualização do projeto de p2
+# Sistema de Gestão de Eventos
 
-Structured project implementation of an Event Planning Management System for the Software Project subject.
-How to execute?
+Uma implementação em Python de um sistema de gestão de eventos, utilizando Firebase como base de dados e aplicando padrões de projeto de software para uma arquitetura robusta e escalável. Este projeto foi desenvolvido para a disciplina de Projeto de Software.
 
-    Download and run the file main.py (evento-ps.py)
+## Funcionalidades Implementadas
 
-Implemented Features
- Event Management
+* **Gestão de Eventos:** Criação, cancelamento e listagem de eventos.
+* **Gestão de Participantes:** Adição de participantes (com diferentes tipos), listagem e remoção.
+* **Gestão de Locais:** Adição e listagem de locais disponíveis para os eventos.
+* **Notificações:** Sistema de notificação (via Firebase) para o cancelamento de eventos.
+* **Gestão Financeira:** Definição de orçamento e registo de despesas por evento.
+* **Coordenação de Fornecedores:** Adição, listagem e atualização de status de fornecedores.
+* **Gestão de Palestrantes (Speakers):** Adição, listagem e remoção de palestrantes de um evento.
+* **Feedback e Pesquisas:** Criação de pesquisas e recolha de feedback dos participantes.
 
-    Class Evento
+---
 
-        criar_evento(), cancelar_evento(), listar_eventos()
+## Configuração e Instalação
 
- Attendee Management
+Para executar este projeto, são necessários alguns passos de configuração, principalmente para a ligação com a base de dados Firebase.
 
-    Class Participante
+### Pré-requisitos
 
-        adicionar_participante_evento(), listar_participantes_evento(), excluir_participante_evento()
+* Python 3.x
+* Conta Google para aceder ao Firebase
 
-        Each participant receives a unique ticket (ingresso)
+### 1. Clonar o Repositório
 
- Feedback and Survey Collection
+```bash
+git clone [https://github.com/seu-usuario/seu-repositorio.git](https://github.com/seu-usuario/seu-repositorio.git) cd seu-repositorio 
+```
 
-    Class Survey
+#  Instalar dependências
+    Este projeto requer a biblioteca firebase-admin. Instale-a usando o pip:
 
-        criar_survey_evento() to create a satisfaction survey
+```bash
+pip install firebase-admin
+```
 
-    Class Feedback
+# Configurar a Base de Dados Firebase
 
-        coletar_feedback_evento() to collect responses from participants
+O sistema utiliza o Firebase Realtime Database para armazenar todos os dados. Siga estes passos:
 
-        listar_feedbacks_evento() to review feedback
+1. Acesse o Console do Firebase e crie um novo projeto.
 
- Speaker and Agenda Management
+2. No menu do projeto, vá para Build > Realtime Database e crie uma nova base de dados. Pode começar no modo de teste para permitir leituras e escritas.
 
-    Class Speaker
+3. Vá para Configurações do Projeto (ícone de engrenagem) > Contas de serviço.
 
-        adicionar_speaker_evento(), listar_speakers_evento(), remover_speaker_evento()
+4. Clique em "Gerar nova chave privada". Será feito o download de um ficheiro .json.
 
-        Each speaker has a bio, topic, and scheduled time
+5. **IMPORTANTE**: Renomeie este ficheiro para projetorefatorado-firebase-adminsdk-fbsvc-d9be3a5d92.json e coloque-o na pasta raiz do seu projeto. O ficheiro .gitignore já está configurado para impedir que este ficheiro sensível seja enviado para o GitHub.
 
- Financial Management
+# Como Executar
+Após concluir a configuração, execute o ficheiro principal para iniciar o menu interativo:
+```bash
+python evento.py
+```
+# Arquitetura e Padrões de Projeto
+O código foi refatorado para seguir uma arquitetura mais limpa e aplicar padrões de projeto criacionais, melhorando a manutenibilidade e a flexibilidade do sistema.
 
-    Class Despesa
+Estrutura de Ficheiros
+O projeto está organizado da seguinte forma:
 
-        definir_orcamento_evento(), registrar_despesa_evento(), ver_financas_evento()
+- evento.py: Contém a classe principal SistemaEventos que gere a lógica e os menus da aplicação.
 
-        Budget planning, expense tracking, and current balance
+- firebaseServico.py: Implementa um serviço para a ligação com o Firebase.
 
- Vendor Coordination
+- builder.py: Contém a implementação do padrão Builder.
 
-    Class Fornecedor
+- factory.py: Contém a implementação do padrão Factory Method.
 
-        adicionar_fornecedor_evento(), listar_fornecedores_evento(), atualizar_status_fornecedor_evento()
+- local.py: Contém a classe Local.
 
-        Vendor status tracking (e.g. Pendente, Confirmado)
-**Implementei a 10º funcionalidade, porém ao integrar ao banco de dados houve alguns erros, então por enquanto irei deixar assim e nesta semana irei consertar e colocar o banco de dados**
+## Padrões de Projeto Criacionais Utilizados
+- Singleton (firebaseServico.py): Garante que existe apenas uma única instância da ligação com a base de dados Firebase em toda a aplicação. Isto evita a inicialização múltipla e o consumo desnecessário de recursos.
 
-# Banco de dados
+- Factory Method (factory.py): Utilizado para criar diferentes tipos de participantes (Regular, VIP, Estudante). A classe ParticipanteFactory delega a criação do objeto correto, permitindo que o sistema seja facilmente estendido com novos tipos de participantes sem alterar o código principal.
 
+- Builder (builder.py): Empregado para a construção de objetos de Evento. O EventoBuilder permite a criação de um evento passo a passo (definindo nome, data, orçamento, etc.), simplificando um processo de criação que poderia ser complexo e tornando o código mais legível.
