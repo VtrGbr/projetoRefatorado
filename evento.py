@@ -4,6 +4,7 @@ from local import Local
 from factory import ParticipanteFactory #Factory method
 from firebaseServico import firebase_service_instance # singleton
 from builder import EventoBuilder #Builder
+from command import *
 
 
 class Participante:
@@ -200,6 +201,19 @@ class SistemaEventos:
             return None
 
     def gerenciar_evento(self):
+        #Dicionario contendo os commands
+        comandos = {
+            '1':CriarEventoCommand(self),
+            '2':CancelarEventoCommand(self),
+            '3': ListarEventoCommand(self),
+            '4':CriarSurveyEventoCommand(self),
+            '5':ColetarFeedbackEventoCommand(self),
+            '6':ListarFeedbacksEventoCommand(self),
+            '7':AdicionarSpeakerEventoCommand(self),
+            '8':ListarSpeakersEventoCommand(self),
+            '9':RemoverSpeakerEventoCommand(self),
+            '10': ReservarLocalEventoCommand(self)
+        }
         while True:
             print("\n--- GERENCIAR EVENTO ---")
             print("1. Criar evento")
@@ -214,17 +228,14 @@ class SistemaEventos:
             print("10. Reservar local")
             print("0. Voltar")
             op = input("Opção: ")
-            if   op == '1': self.criar_evento()
-            elif op == '2': self.cancelar_evento()
-            elif op == '3': self.listar_eventos()
-            elif op == '4': self.criar_survey_evento()
-            elif op == '5': self.coletar_feedback_evento()
-            elif op == '6': self.listar_feedbacks_evento()
-            elif op == '7': self.adicionar_speaker_evento()
-            elif op == '8': self.listar_speakers_evento()
-            elif op == '9': self.remover_speaker_evento()
-            elif op == '10': self.reservar_local_evento()
-            elif op == '0': break
+            
+            if op == '0':
+                break
+            
+            comando = comandos.get(op)
+
+            if comando:
+                comando.executar()
             else: print("Inválido.")
 
     def reservar_local_evento(self):
@@ -265,6 +276,11 @@ class SistemaEventos:
             print(f"Ocorreu um erro ao reservar o local: {e}")
 
     def gerenciar_participante(self):
+        comandos = {
+            '1':AdicionarParticipanteEventoCommand(self),
+            '2':ListarParticipanteEventoCommand(self),
+            '3': ExcluirParticipanteEventoCommand(self),
+        }
         while True:
             print("\n--- GERENCIAR PARTICIPANTE ---")
             print("1. Adicionar participante")
@@ -272,14 +288,21 @@ class SistemaEventos:
             print("3. Excluir participante")
             print("0. Voltar")
             op = input("Opção: ")
-            if   op == '1': self.adicionar_participante_evento()
-            elif op == '2': self.listar_participantes_evento()
-            elif op == '3': self.excluir_participante_evento()
-            elif op == '0': break
-            else: print("Inválido.")
+            
+            if op == '0': break
+            comando = comandos.get(op)
+
+            if comando:
+                comando.executar()
+            else: print("Opção Inválido.")
 
 
     def gerenciar_fornecedores(self):
+        comandos = {
+            '1':AdicionarFornecedorEventoCommand(self),
+            '2':ListarFornecedorEventoCommand(self),
+            '3': AtualizarStatusFornecedorEventoCommand(self),
+        }
         while True:
             print("\n--- GERENCIAR FORNECEDORES ---")
             print("1. Adicionar fornecedor")
@@ -287,14 +310,21 @@ class SistemaEventos:
             print("3. Atualizar status de fornecedor")
             print("0. Voltar")
             op = input("Opção: ")
-            if   op == '1': self.adicionar_fornecedor_evento()
-            elif op == '2': self.listar_fornecedores_evento()
-            elif op == '3': self.atualizar_status_fornecedor_evento()
-            elif op == '0': break
-            else: print("Inválido.")
+            
+            if op == '0': break
+            comando = comandos.get(op)
+
+            if comando:
+                comando.executar()
+            else: print("Opção Inválida.")
 
 
     def gerenciar_financas(self):
+        comandos = {
+            '1':DefinirOrcamentoEventoCommand(self),
+            '2':RegistrarDespesaEventoCommand(self),
+            '3': VerfinancasEventoCommand(self),
+        }
         while True:
             print("\n--- GERENCIAR FINANÇAS ---")
             print("1. Definir orçamento")
@@ -302,11 +332,13 @@ class SistemaEventos:
             print("3. Ver finanças")
             print("0. Voltar")
             op = input("Opção: ")
-            if   op == '1': self.definir_orcamento_evento()
-            elif op == '2': self.registrar_despesa_evento()
-            elif op == '3': self.ver_financas_evento()
-            elif op == '0': break
-            else: print("Inválido.")
+            
+            if op == '0': break
+            comando = comandos.get(op)
+
+            if comando:
+                comando.executar()
+            else: print("Opção Inválida.")
     
     def criar_evento(self):
         print("\n--- Criando novo evento ---")
@@ -755,15 +787,22 @@ class SistemaEventos:
                 print("Inválido.")
 
     def gerenciar_locais(self):
+        comandos = {
+            '1':AdicionarLocalCommand(self),
+            '2':ListarLocaisDisponiveisCommand(self),
+        }
         while True:
             print("\n--- GERIR LOCAIS ---")
             print("1. Adicionar novo local")
             print("2. Listar locais disponíveis")
             print("0. Voltar")
             op = input("Opção: ")
-            if   op == '1': self.adicionar_local()
-            elif op == '2': self.listar_locais_disponiveis()
-            elif op == '0': break
+            
+            if op == '0': break
+            comando = comandos.get(op)
+
+            if comando:
+                comando.executar()
             else: print("Opção inválida.")
     
     def adicionar_local(self):
