@@ -81,3 +81,10 @@ O projeto está organizado da seguinte forma:
 
 ## Padrões de Projeto Comportamentais Utilizados
 - Command (command.py): Utilizado para substituir os 'ifs' dentro das opções "gerenciar_evento","gerenciar_participante", "gerenciar_financas", "gerenciar_palestrante" e "gerenciar_locais". Assim garantimos que o código fica mais exuto e limpo  
+
+- Observer (observer.py): Na função "cancelar_evento", a lógica de cancelamento está diretamente acoplada à lógica de criação de notificações no Firebase. O padrão Observer permite que um objeto (o "Observado", ou Subject) notifique automaticamente uma lista de objetos dependentes (os "Observadores", ou Observers) quando o seu estado muda, sem que o Subject precise de saber quem são os Observers.
+
+- Stage (stage.py) : O padrão stage atua como uma máquina de estados finitos. Já que o código muitas vezes navega entre "munu Principal" depois "Estado de geração de evento" depois para " Estado de geração de participantes" e assim por diante; este padrão permite que um objeto altere o seu comportamento quando o seu estado interno muda.
+
+## Padrões de Projeto Estruturais Utilizados
+- Por enquanto nenhum
