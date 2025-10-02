@@ -78,3 +78,6 @@ O projeto está organizado da seguinte forma:
 - Factory Method (factory.py): Utilizado para criar diferentes tipos de participantes (Regular, VIP, Estudante). A classe ParticipanteFactory delega a criação do objeto correto, permitindo que o sistema seja facilmente estendido com novos tipos de participantes sem alterar o código principal.
 
 - Builder (builder.py): Empregado para a construção de objetos de Evento. O EventoBuilder permite a criação de um evento passo a passo (definindo nome, data, orçamento, etc.), simplificando um processo de criação que poderia ser complexo e tornando o código mais legível.
+
+## Padrões de Projeto Comportamentais Utilizados
+- Command (command.py): Utilizado para substituir os 'ifs' dentro das opções "gerenciar_evento","gerenciar_participante", "gerenciar_financas", "gerenciar_palestrante" e "gerenciar_locais". Assim garantimos que o código fica mais exuto e limpo  
