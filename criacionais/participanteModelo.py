@@ -40,16 +40,3 @@ class ParticipanteEstudante(Participante):
     def __init__(self, nome, email):
         super().__init__(nome,email)
         self.tipo = "Estudante"
-
-# --- A Fábrica ---
-class ParticipanteFactory:
-    @staticmethod
-    def criar_participante(tipo, nome, email):
-        if tipo.lower() == 'vip':
-            return ParticipanteVIP(nome, email)
-        elif tipo.lower() == 'regular':
-            return ParticipanteRegular(nome, email)
-        elif tipo.lower() == 'estudante':
-            return ParticipanteEstudante(nome, email)
-        else:
-            raise ValueError(f"Tipo de participante desconhecido: {tipo}")

@@ -87,4 +87,4 @@ O projeto está organizado da seguinte forma:
 - Stage (stage.py) : O padrão stage atua como uma máquina de estados finitos. Já que o código muitas vezes navega entre "munu Principal" depois "Estado de geração de evento" depois para " Estado de geração de participantes" e assim por diante; este padrão permite que um objeto altere o seu comportamento quando o seu estado interno muda.
 
 ## Padrões de Projeto Estruturais Utilizados
-- Por enquanto nenhum
+- Decorator (decorator.py): Fiz uma junção com o factory, para que quando um participante for adicionado ele obtenha benefícios de acordo com o seu tipo

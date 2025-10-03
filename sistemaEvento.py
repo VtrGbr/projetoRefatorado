@@ -1,9 +1,12 @@
-from factory import ParticipanteFactory #Factory method
-from firebaseServico import firebase_service_instance # singleton
-from builder import EventoBuilder #Builder
-from command import *
-from observer import *
-from state import MenuPrincipalState
+from criacionais.factory import ParticipanteFactory #Factory method
+from criacionais.firebaseServico import firebase_service_instance # singleton
+from criacionais.builder import EventoBuilder #Builder
+
+from comportamentais.command import *
+from comportamentais.observer import NotificacaoObservador
+from comportamentais.state import MenuPrincipalState
+
+from estruturais.decorator import *
 
 class SistemaEventos:
     def __init__(self):
@@ -20,7 +23,7 @@ class SistemaEventos:
     def set_state(self, novoEstado):
         
         self._state = novoEstado
-        print("---- Mudança de Estado ----")
+        print(f"---- Mudança de Estado {novoEstado} ----")
     
     def ExecutarEstado(self):
         while self._state is not None:
