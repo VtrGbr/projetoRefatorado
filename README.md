@@ -51,7 +51,7 @@ git clone [https://github.com/seu-usuario/seu-repositorio.git](https://github.co
 ```
 
 #  Instalar dependências
-    Este projeto requer a biblioteca firebase-admin. Instale-a usando o pip:
+Este projeto requer a biblioteca firebase-admin. Instale-a usando o pip:
 
 ```bash
 pip install firebase-admin
