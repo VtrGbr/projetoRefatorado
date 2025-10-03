@@ -92,23 +92,23 @@ O projeto está organizado da seguinte forma:
 
 - evento.py: O ponto de entrada da aplicação, responsável por iniciar a Facade.
 
-### Padrões de projeto utilizados
+## Padrões de projeto utilizados
 
-## Padrões de Projeto Criacionais Utilizados
+### Padrões de Projeto Criacionais Utilizados
 - Singleton (firebaseServico.py): Garante uma única instância da ligação com o Firebase, otimizando recursos e a gestão do estado da ligação.
 
 - Factory Method (factory.py): Utilizado para criar diferentes tipos de Participante. Centraliza a lógica de instanciação, permitindo a fácil adição de novos tipos sem alterar o código cliente.
 
 - Builder (builder.py): Empregado para construir o objeto de Evento de forma passo a passo, simplificando a criação de um objeto complexo com múltiplos atributos.
 
-## Padrões de Projeto Comportamentais Utilizados
+### Padrões de Projeto Comportamentais Utilizados
 - State (state.py): Gere o fluxo da aplicação como uma máquina de estados finitos. Cada menu (Menu Principal, Gerir Eventos, etc.) é um estado, o que organiza a navegação e elimina a necessidade de menus aninhados.
 
 - Command (command.py): Encapsula cada ação do utilizador (como "criar evento" ou "listar participantes") num objeto. Isto elimina longos blocos if/elif nos menus e desacopla quem invoca a ação de quem a executa.
 
 - Observer (observer.py): Usado para desacoplar o cancelamento de um evento da notificação aos participantes. Quando um evento é cancelado, ele notifica os "observadores" (como o serviço de notificação) sem precisar de conhecer os detalhes da sua implementação.
 
-## Padrões de Projeto Estruturais Utilizados
+### Padrões de Projeto Estruturais Utilizados
 - Facade (facade.py): Fornece um ponto de entrada único e simplificado para o sistema. O ficheiro evento.py interage apenas com a Facade, que esconde toda a complexidade de inicialização e configuração do sistema.
 
 - Decorator (decorator.py): Adiciona benefícios (como "Camisa" ou "Certificado") a objetos Participante dinamicamente. Está integrado com a Factory para que os participantes já sejam criados com os seus benefícios padrão.
