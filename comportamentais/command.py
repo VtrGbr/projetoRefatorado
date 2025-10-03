@@ -166,3 +166,15 @@ class ImportarLocaisCsvCommand(Commando):
         self.sistema = sistema
     def executar(self):
         self.sistema.importar_locais_de_csv()
+
+class ImportarParticipanteCsvCommand(Commando):
+    def __init__(self,sistema : 'SistemaFacade'):
+        self.sistema = sistema
+    def executar(self):
+        self.sistema.importar_participantes_csv()
+
+class ImportarFornecedorCsvCommand(Commando):
+    def __init__(self, sistema: 'SistemaFacade'):
+        self.sistema = sistema
+    def executar(self):
+        self.sistema.importar_fornecedor_csv()

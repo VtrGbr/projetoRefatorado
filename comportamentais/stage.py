@@ -118,10 +118,12 @@ class GestaoParticipanteState(MaquinaEstados):
             '1': AdicionarParticipanteEventoCommand(self.sistema),
             '2': ListarParticipanteEventoCommand(self.sistema),
             '3': ExcluirParticipanteEventoCommand(self.sistema),
+            '4': ImportarParticipanteCsvCommand(self.sistema)
         }
         opcoes = {'1': "Adicionar Participante", 
                    '2': "Listar Participantes", 
-                   '3': "Excluir participantes"
+                   '3': "Excluir participantes",
+                   '4': "Importar participantes csv"
                 }
 
         while True:
@@ -144,13 +146,15 @@ class GestaoFornecedoresState(MaquinaEstados):
         comandos = {
             '1':AdicionarFornecedorEventoCommand(self.sistema),
             '2':ListarFornecedorEventoCommand(self.sistema),
-            '3': AtualizarStatusFornecedorEventoCommand(self.sistema)
+            '3': AtualizarStatusFornecedorEventoCommand(self.sistema),
+            '4': ImportarFornecedorCsvCommand(self.sistema)
         }
 
         opcoes = {
             '1': "Adicionar fornecedor",
             '2': "Listar fonecedores",
-            '3': "Atualizar status do fornecedor"
+            '3': "Atualizar status do fornecedor",
+            '4': "Importar fornecedores csv"
         }
 
         while True:
@@ -212,7 +216,7 @@ class GestaoLocaisState(MaquinaEstados):
             '1': "Adicionar Local",
             '2': "Listar locais disponíveis",
             '3': "Remover Local",
-            '4': "Importar csv"
+            '4': "Importar locais csv"
         }
 
         while True:

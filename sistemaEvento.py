@@ -7,7 +7,7 @@ from comportamentais.observer import NotificacaoObservador
 from comportamentais.state import MenuPrincipalState
 
 from estruturais.decorator import *
-from estruturais.adapter import LocaisCsvAdapter
+from estruturais.adapter import LocaisCsvAdapter, ParticipanteCsvAdapter, FornecedorCsvAdapter
 
 class SistemaEventos:
     def __init__(self):
@@ -640,8 +640,8 @@ class SistemaEventos:
 
     # === Adapter
     def importar_locais_de_csv(self):
-        print("\n--- Importar Locais de um Ficheiro CSV ---")
-        caminho = input("Digite o caminho para o ficheiro CSV: ")
+        print("\n--- Importar Locais do csv ---")
+        caminho = input("Digite o caminho para o arquivo csv: ")
         
         # O sistema não sabe como ler um CSV. Ele apenas sabe que o adaptador
         # tem um método .obter_locais() que lhe devolverá os dados no formato correto.
@@ -652,3 +652,51 @@ class SistemaEventos:
             # O método .update() do Firebase adiciona ou atualiza os locais
             self.locais_ref.update(novos_locais)
             print(f"\n{len(novos_locais)} locais foram importados com sucesso!")
+
+    def importar_participantes_csv(self):
+        print("\n--- Importar Participantes de um arquivo csv ---")
+
+        sel = self.selecionar_evento()
+        if not sel:
+            return
+
+        caminho = input("Digite o caminho para o arquivo csv: ")
+
+        adaptador = ParticipanteCsvAdapter(caminho)
+        novos_participantes = adaptador.obter_participantes()
+
+        if novos_participantes:
+            try:
+                
+                participantes_ref = self.eventos_ref.child(sel).child('participantes')
+                
+                
+                participantes_ref.update(novos_participantes)
+                
+                print(f"\n{len(novos_participantes)} participantes foram importados com sucesso para o evento '{sel}'!")
+            except Exception as e:
+                print(f"Ocorreu um erro ao guardar os participantes no Firebase: {e}")
+    
+    def importar_fornecedor_csv(self):
+        print("\n--- Importar Fornecedores de um arquivo csv ---")
+        
+        sel = self.selecionar_evento()
+        if not sel:
+            return
+        
+        caminho = input("Digite o nome do arquivo csv: ")
+
+        adaptador = FornecedorCsvAdapter(caminho)
+
+        fornecedores = adaptador.obterFornecedores()
+
+        if fornecedores:
+            try:
+                fornecedores_ref = self.eventos_ref.child(sel).child('fornecedores')
+                
+                for fornecedor_data in fornecedores:
+                    fornecedores_ref.push(fornecedor_data)
+
+                print(f"\n{len(fornecedores)} fornecedores foram importados com sucesso para o evento '{sel}'!")
+            except Exception as e:
+                print(f"Ocorreu um erro ao guardar os fornecedores no Firebase: {e}")

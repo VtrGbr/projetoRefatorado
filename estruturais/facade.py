@@ -122,4 +122,10 @@ class SistemaFacade:
 
     def importar_locais_de_csv(self):
         self._sistema.importar_locais_de_csv()
+    
+    def importar_participantes_csv(self):
+        self._sistema.importar_participantes_csv()
+
+    def importar_fornecedor_csv(self):
+        self._sistema.importar_fornecedor_csv()
             
