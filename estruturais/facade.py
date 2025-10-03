@@ -83,6 +83,9 @@ class SistemaFacade:
     def ver_financas_evento(self):
         self._sistema.ver_financas_evento()
     
+    def remover_despesa_evento(self):
+        self._sistema.remover_despesa_evento()
+    
     # --- Locais
 
     def adicionar_local(self):

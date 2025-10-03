@@ -22,7 +22,7 @@ class MaquinaEstados(ABC):
 
 class MenuPrincipalState(MaquinaEstados):
     def run(self):
-        options = {
+        opcoes = {
             '1': "Gerir Evento",
             '2': "Gerir Participante",
             '3': "Gerir Fornecedores",
@@ -36,7 +36,7 @@ class MenuPrincipalState(MaquinaEstados):
         
         while True:
             print("\n====== MENU PRINCIPAL ======")
-            self.display_menu(options)
+            self.display_menu(opcoes)
             op = input("Opção: ")
 
             if op == '1':
@@ -82,7 +82,7 @@ class GestaoEventoState(MaquinaEstados):
             '10': ReservarLocalEventoCommand(self.sistema)
         }
         
-        options = {
+        opcoes = {
             '1': "Criar evento", 
             '2': "Cancelar evento", 
             '3': "Listar eventos",
@@ -97,7 +97,7 @@ class GestaoEventoState(MaquinaEstados):
 
         while True:
             print("\n--- GERIR EVENTO ---")
-            self.display_menu(options)
+            self.display_menu(opcoes)
             op = input("Opção: ")
 
             if op == '0':
@@ -119,14 +119,14 @@ class GestaoParticipanteState(MaquinaEstados):
             '2': ListarParticipanteEventoCommand(self.sistema),
             '3': ExcluirParticipanteEventoCommand(self.sistema),
         }
-        options = {'1': "Adicionar Participante", 
+        opcoes = {'1': "Adicionar Participante", 
                    '2': "Listar Participantes", 
                    '3': "Excluir participantes"
                 }
 
         while True:
             print("\n--- GERIR PARTICIPANTE ---")
-            self.display_menu(options)
+            self.display_menu(opcoes)
             op = input("Opção: ")
 
             if op == '0':
@@ -174,12 +174,14 @@ class GestaoFinancasState(MaquinaEstados):
             '1':DefinirOrcamentoEventoCommand(self.sistema),
             '2':RegistrarDespesaEventoCommand(self.sistema),
             '3': VerfinancasEventoCommand(self.sistema),
+            '4': RemoverDespesaEventoCommand(self.sistema)
         }
 
         opcoes = {
             '1': "Definir orçamento",
             '2': "Registrar despesa",
-            '3': "Ver finanças"
+            '3': "Ver finanças",
+            '4': "Remover despesa"
         }
 
         while True:

@@ -21,6 +21,7 @@ class SistemaEventos:
         #state
         self._state = MenuPrincipalState(self)
 
+    # ==== State
     def set_state(self, novoEstado):
         
         self._state = novoEstado
@@ -30,14 +31,15 @@ class SistemaEventos:
         while self._state is not None:
             self._state.run()
 
-
+    #=== Observer
     def anexar(self,observador):
         self._observadores.append(observador)
 
     def notificar(self,nomeEvento,listaEmail):
         for observador in self._observadores:
             observador.atualizar(nomeEvento,listaEmail)
-
+    
+    #=== Evento
     def selecionar_evento(self):
         eventos = self.eventos_ref.get()
         if not eventos:
@@ -58,47 +60,6 @@ class SistemaEventos:
             print("Seleção inválida.")
             return None
 
-
-    def reservar_local_evento(self):
-        sel = self.selecionar_evento()
-        if not sel: return
-        
-        #Carregando os locais disponiveis
-        print("-- Carregando os locais disponiveis")
-        locaisDisponiveis = self.locais_ref.get()
-
-        if not locaisDisponiveis:
-            print("Nenhum local disponível para reserva. Adicione um local primeiro no menu 'Gerir locais")
-            return
-        
-        #Transformar o dicionario em uma lista
-        locais_lista = list(locaisDisponiveis.values())
-
-        print("\n--- Escolha um local para fazer a reserva ---")
-        for i, local in enumerate(locais_lista):
-            print(f"{i}. {local['nome']} ({local['endereco']}) - Capacidade: {local['capacidade']}")
-
-        try:
-            index = int(input("Selecione o local pelo número: "))
-            local_escolhido = locais_lista[index]
-
-            #preparar os dados do local para guardar no evento
-            local_data ={
-                'nome': local_escolhido['nome'],
-                'endereco': local_escolhido['endereco'],
-                'capacidade': local_escolhido['capacidade']
-            }    
-
-            self.eventos_ref.child(sel).child('local_reservado').set(local_data)
-            print(f"Local '{local_escolhido['nome']}' reservado com sucesso para o evento '{sel}'.")
-        except (ValueError, IndexError):
-            print("Seleção inválida.")
-        except Exception as e:
-            print(f"Ocorreu um erro ao reservar o local: {e}")
-
- 
-
-   
     def criar_evento(self):
         print("\n--- Criando novo evento ---")
         nome = input("Nome: ")
@@ -120,8 +81,6 @@ class SistemaEventos:
         except Exception as e:
             print(f"Erro ao criar evento: {e}")
 
-    
-    
     def cancelar_evento(self):
         nome_evento = self.selecionar_evento()
         if not nome_evento:
@@ -327,6 +286,8 @@ class SistemaEventos:
         else:
             print("ID inválido ou não encontrado.")
    
+
+   # ==== Participantes
     #factory method
     def adicionar_participante_evento(self):
         sel = self.selecionar_evento()
@@ -385,6 +346,7 @@ class SistemaEventos:
             print(f"Erro ao remover participante: {e}")
 
 
+    # ==== Fornecedor
     def adicionar_fornecedor_evento(self):
         sel = self.selecionar_evento()
         if not sel: return
@@ -447,12 +409,14 @@ class SistemaEventos:
         except Exception as e:
             print(f"Erro ao atualizar status: {e}")
 
+
+    # === Financeiro
     def definir_orcamento_evento(self):
         sel = self.selecionar_evento()
         if not sel: return
 
         try:
-            valor = float(input("Digite o valor do orçamento: R$"))
+            valor = float(input("Digite o valor do orçamento: R$ "))
             # Guarda o orçamento diretamente no nó do evento
             self.eventos_ref.child(sel).update({'orcamento': valor})
             print(f"Orçamento de R${valor:.2f} definido para o evento '{sel}'.")
@@ -461,27 +425,47 @@ class SistemaEventos:
         except Exception as e:
             print(f"Erro ao definir o orçamento: {e}")
 
+
     def registrar_despesa_evento(self):
         sel = self.selecionar_evento()
         if not sel: return
 
+        # Obter os dados financeiros atuais
+        dados_evento = self.eventos_ref.child(sel).get()
+
+        orcamento = dados_evento.get('orcamento', 0.0)
+
+        despesas = dados_evento.get('despesas', {})
+
+        total_gasto = sum(item['valor'] for item in despesas.values())
+
+        saldo = orcamento - total_gasto
+
+        print(f"\nSaldo atual: R${saldo:.2f}")
+
         descricao = input("Descrição da despesa: ")
         try:
-            valor = float(input("Valor da despesa: R$"))
+            valor = float(input("Valor da despesa: R$ "))
         except ValueError:
             print("Erro: Por favor, digite um número válido.")
             return
+        
+        if valor > saldo:
+            print(f"Erro: A despesa de R${valor:.2f} excede o saldo disponível de R${saldo:.2f}.")
+            return
+
+        categoria = input("Categoria da despesa (ex: Catering, Marketing, Local): ")
         data = input("Data da despesa (dd/mm/aaaa): ")
 
-        despesa_data = {
+        despesaDados = {
             'descricao': descricao,
             'valor': valor,
-            'data': data
+            'data': data,
+            'categoria': categoria
         }
 
         try:
-            # Adiciona a despesa à lista de despesas do evento
-            self.eventos_ref.child(sel).child('despesas').push(despesa_data)
+            self.eventos_ref.child(sel).child('despesas').push(despesaDados)
             print("Despesa registada com sucesso.")
         except Exception as e:
             print(f"Erro ao registar a despesa: {e}")
@@ -490,7 +474,6 @@ class SistemaEventos:
         sel = self.selecionar_evento()
         if not sel: return
 
-        # Obtém todos os dados do evento
         dados_evento = self.eventos_ref.child(sel).get()
         if not dados_evento:
             print("Evento não encontrado.")
@@ -502,19 +485,65 @@ class SistemaEventos:
         total_gasto = sum(item['valor'] for item in despesas.values())
         saldo = orcamento - total_gasto
 
-        print(f"\n--- Finanças do Evento: {sel} ---")
+        # Agrupar despesas por categoria
+        despesas_por_categoria = {}
+        for item in despesas.values():
+            categoria = item.get('categoria', 'Sem Categoria')
+            if categoria not in despesas_por_categoria:
+                despesas_por_categoria[categoria] = []
+            despesas_por_categoria[categoria].append(item)
+
+        print(f"\n--- Relatório Financeiro do Evento: {sel} ---")
         print(f"Orçamento Total: R${orcamento:.2f}")
-        print("\nDespesas Registadas:")
-        if not despesas:
+        
+        print("\n--- Despesas por Categoria ---")
+        if not despesas_por_categoria:
             print("Nenhuma despesa registada.")
         else:
-            for item in despesas.values():
-                print(f"- {item['descricao']} (R${item['valor']:.2f}) em {item['data']}")
-        print("-" * 20)
+            for categoria, items in despesas_por_categoria.items():
+                total_categoria = sum(d['valor'] for d in items)
+                print(f"\nCategoria: {categoria} (Total: R${total_categoria:.2f})")
+                for item in items:
+                    print(f"  - {item['descricao']} (R${item['valor']:.2f}) em {item['data']}")
+
+        print("\n" + "="*30)
         print(f"Total Gasto: R${total_gasto:.2f}")
         print(f"Saldo Disponível: R${saldo:.2f}")
+        if saldo < 0:
+            print("ATENÇÃO: O orçamento foi excedido!")
+        print("="*30)
 
-    
+
+    def remover_despesa_evento(self):
+        sel = self.selecionar_evento()
+        if not sel: return
+
+        despesas_ref = self.eventos_ref.child(sel).child('despesas')
+        despesas = despesas_ref.get()
+
+        if not despesas:
+            print("Nenhuma despesa registada para remover.")
+            return
+
+        print("\n--- Despesas Registadas ---")
+        for despesa_id, dados in despesas.items():
+            print(f"-> Descrição: {dados['descricao']} | Valor: R${dados['valor']:.2f}")
+            print(f"   ID para remoção: {despesa_id}")
+
+        id_para_remover = input("\nDigite o ID da despesa que deseja remover: ")
+
+        if id_para_remover not in despesas:
+            print("ID inválido.")
+            return
+
+        try:
+            despesas_ref.child(id_para_remover).delete()
+            print("Despesa removida com sucesso!")
+        except Exception as e:
+            print(f"Erro ao remover a despesa: {e}")
+
+    # === Local
+
     def adicionar_local(self):
         print("\n---Adicionar um novo local---")
         nome = input("Nome do local: ")
@@ -549,6 +578,44 @@ class SistemaEventos:
             print(f"- {dados['nome']} ({dados['endereco']} - Capacidade {dados['capacidade']})")
         return locais
     
+    
+    def reservar_local_evento(self):
+        sel = self.selecionar_evento()
+        if not sel: return
+        
+        #Carregando os locais disponiveis
+        print("-- Carregando os locais disponiveis")
+        locaisDisponiveis = self.locais_ref.get()
+
+        if not locaisDisponiveis:
+            print("Nenhum local disponível para reserva. Adicione um local primeiro no menu 'Gerir locais")
+            return
+        
+        #Transformar o dicionario em uma lista
+        locais_lista = list(locaisDisponiveis.values())
+
+        print("\n--- Escolha um local para fazer a reserva ---")
+        for i, local in enumerate(locais_lista):
+            print(f"{i}. {local['nome']} ({local['endereco']}) - Capacidade: {local['capacidade']}")
+
+        try:
+            index = int(input("Selecione o local pelo número: "))
+            local_escolhido = locais_lista[index]
+
+            #preparar os dados do local para guardar no evento
+            local_data ={
+                'nome': local_escolhido['nome'],
+                'endereco': local_escolhido['endereco'],
+                'capacidade': local_escolhido['capacidade']
+            }    
+
+            self.eventos_ref.child(sel).child('local_reservado').set(local_data)
+            print(f"Local '{local_escolhido['nome']}' reservado com sucesso para o evento '{sel}'.")
+        except (ValueError, IndexError):
+            print("Seleção inválida.")
+        except Exception as e:
+            print(f"Ocorreu um erro ao reservar o local: {e}")
+    
     def remover_local(self):
 
         locaisExistentes = self.listar_locais_disponiveis()
@@ -571,7 +638,7 @@ class SistemaEventos:
             print(f"Erro ao remover localiade: {e}")
     
 
-
+    # === Adapter
     def importar_locais_de_csv(self):
         print("\n--- Importar Locais de um Ficheiro CSV ---")
         caminho = input("Digite o caminho para o ficheiro CSV: ")

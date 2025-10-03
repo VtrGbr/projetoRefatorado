@@ -130,6 +130,11 @@ class VerfinancasEventoCommand(Commando):
     def executar(self):
         self.sistema.ver_financas_evento()
 
+class RemoverDespesaEventoCommand(Commando):
+    def __init__(self, sistema: 'SistemaFacade'):
+        self.sistema = sistema
+    def executar(self):
+        self.sistema.remover_despesa_evento()
 # --- Gerenciar Local
 
 class AdicionarLocalCommand(Commando):
