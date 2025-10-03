@@ -1,14 +1,7 @@
-import random
 from sistemaEvento import SistemaEventos, NotificacaoObservador
+from estruturais.facade import SistemaFacade
 
 if __name__ == "__main__":
-    # O Singleton é inicializado aqui, na primeira vez que é chamado
-    sistema = SistemaEventos()
-    notificacaoServico = NotificacaoObservador(sistema.notificacoes_ref)
-
-    sistema.anexar(notificacaoServico)
-    sistema.ExecutarEstado()
-    #sistema.menu() 
-
-
+    facade = SistemaFacade()
+    facade.iniciarAplicacao()
     print("\nSistema pronto. A instância do Firebase foi carregada.")

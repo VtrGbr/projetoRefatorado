@@ -7,6 +7,7 @@ from comportamentais.observer import NotificacaoObservador
 from comportamentais.state import MenuPrincipalState
 
 from estruturais.decorator import *
+from estruturais.adapter import LocaisCsvAdapter
 
 class SistemaEventos:
     def __init__(self):
@@ -547,3 +548,40 @@ class SistemaEventos:
         for nome, dados in locais.items():
             print(f"- {dados['nome']} ({dados['endereco']} - Capacidade {dados['capacidade']})")
         return locais
+    
+    def remover_local(self):
+
+        locaisExistentes = self.listar_locais_disponiveis()
+        if not locaisExistentes:
+            return
+        localidade = input("Digite o local que deseja remover: ")
+        
+        
+        if localidade not in locaisExistentes:
+            print("Esta localidade não se encontra no banco de dados.")
+            return
+        localRemover_ref = self.locais_ref.child(localidade)
+           
+
+        try:
+            # Remove o participante do Firebase
+            localRemover_ref.delete()
+            print(f"O local '{localidade}' removido com sucesso.")
+        except Exception as e:
+            print(f"Erro ao remover localiade: {e}")
+    
+
+
+    def importar_locais_de_csv(self):
+        print("\n--- Importar Locais de um Ficheiro CSV ---")
+        caminho = input("Digite o caminho para o ficheiro CSV: ")
+        
+        # O sistema não sabe como ler um CSV. Ele apenas sabe que o adaptador
+        # tem um método .obter_locais() que lhe devolverá os dados no formato correto.
+        adaptador = LocaisCsvAdapter(caminho)
+        novos_locais = adaptador.obterLocais() #Retorna um dicionario para colocar no banco de dados
+        
+        if novos_locais:
+            # O método .update() do Firebase adiciona ou atualiza os locais
+            self.locais_ref.update(novos_locais)
+            print(f"\n{len(novos_locais)} locais foram importados com sucesso!")

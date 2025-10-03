@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
-from command import *
+from .command import *
+
 class MaquinaEstados(ABC):
     def __init__(self,sistema):
         self.sistema = sistema
@@ -14,6 +15,8 @@ class MaquinaEstados(ABC):
             if chave != '0':
                 print(f"{chave}. {valor}")
         print("0. Voltar")
+    def __str__(self):
+        return self.__class__.__name__
 
 # --- Estado do Menu Principal ---
 
@@ -24,7 +27,11 @@ class MenuPrincipalState(MaquinaEstados):
             '2': "Gerir Participante",
             '3': "Gerir Fornecedores",
             '4': "Gerir Finanças",
-            '5': "Gerir Locais"
+            '5': "Gerir Locais",
+            '6': "Gerar Relatório Completo de um Evento"
+        }
+        comandoExtra = {
+            '6': GerarRelatorioGeralCommand(self.sistema.facade)
         }
         
         while True:
@@ -48,6 +55,11 @@ class MenuPrincipalState(MaquinaEstados):
             elif op == '5':
                 self.sistema.set_state(GestaoLocaisState(self.sistema))
                 break
+            elif op == '6':
+                comando = comandoExtra.get(op)
+                if comando:
+                    comando.executar()
+                        
             elif op == '0':
                 self.sistema.set_state(None) # Sinaliza o fim da aplicação
                 break
@@ -190,11 +202,15 @@ class GestaoLocaisState(MaquinaEstados):
         comandos = {
             '1':AdicionarLocalCommand(self.sistema),
             '2':ListarLocaisDisponiveisCommand(self.sistema),
+            '3': RemoverLocalCommand(self.sistema),
+            '4': ImportarLocaisCsvCommand(self.sistema)
         }
 
         opcoes = {
             '1': "Adicionar Local",
             '2': "Listar locais disponíveis",
+            '3': "Remover Local",
+            '4': "Importar csv"
         }
 
         while True:
