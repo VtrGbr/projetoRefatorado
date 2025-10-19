@@ -9,6 +9,8 @@ from comportamentais.state import MenuPrincipalState
 from estruturais.decorator import *
 from estruturais.adapter import LocaisCsvAdapter, ParticipanteCsvAdapter, FornecedorCsvAdapter
 
+from tratar.excessoes import *
+from datetime import datetime
 class SistemaEventos:
     def __init__(self):
         self._observadores = [] # observer
@@ -39,33 +41,62 @@ class SistemaEventos:
         for observador in self._observadores:
             observador.atualizar(nomeEvento,listaEmail)
     
-    #=== Evento
+    
+
     def selecionar_evento(self):
         eventos = self.eventos_ref.get()
         if not eventos:
-            print("Nenhum evento cadastrado no Firebase.")
+            print("Nenhum evento registado no Firebase.")
             return None
 
-        eventos_lista = list(eventos.items()) # Transforma o dicionário em uma lista de tuplas (nome, dados)
+        eventos_lista = list(eventos.items())
 
         print("\nEventos disponíveis:")
         for i, (nome_evento, dados_evento) in enumerate(eventos_lista):
-            print(f"{i}. {nome_evento} (Data: {dados_evento['data']})")
+           
+            data_evento = dados_evento.get('data', 'Sem data')
+            print(f"{i}. {nome_evento} (Data: {data_evento})")
 
         try:
-            idx = int(input("Selecione o evento pelo número: "))
-            # Retorna o nome do evento selecionado (que é a chave no Firebase)
-            return eventos_lista[idx][0]
-        except (ValueError, IndexError):
+            idx_str = input("Selecione o evento pelo número: ")
+         
+            if not idx_str.isdigit():
+                print("Seleção inválida. Por favor, digite um número.")
+                return None
+            
+            idx = int(idx_str)
+            if 0 <= idx < len(eventos_lista):
+                return eventos_lista[idx][0]
+            else:
+                print("Seleção inválida.")
+                return None
+                
+        except ValueError: 
             print("Seleção inválida.")
             return None
 
-    def criar_evento(self):
-        print("\n--- Criando novo evento ---")
-        nome = input("Nome: ")
-        data = input("Data (dd/mm/aaaa): ")
+    def criar_evento(self, nome : str , data : str):
+        if not nome:
+            raise NomeInvalidoError("O nome não pode estar vazio")
+        
+        if not data:
+            raise DataInvalidaError("A data do evento não pode estar vazia")
+        
+        eventoExistente = self.eventos_ref.child(nome).get()
+
+        if eventoExistente:
+            raise EventoJaExistenteError(f" Já existe um evento como nome: {nome}")
+        
+        try:
+            dataEvento = datetime.strptime(data, '%d/%m/%Y').date()
+
+            if dataEvento < datetime.now().date():
+                raise DataInvalidaError(" A data do evento não pode ser uma ja ocorrida")
+        except ValueError:
+            raise DataInvalidaError("O formato da data deve ser dd/mm/aaaa e a data deve ser válida")
         try:
             # Usa o Builder para construir o objeto do evento
+
             builder = EventoBuilder(nome, data)
             
             orcamento_str = input("Definir orçamento inicial (opcional, ex: 5000): ")

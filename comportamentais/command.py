@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-
+from tratar.excessoes import *
 #Classe abstrata para o comando
 
 class Commando(ABC):
@@ -13,7 +13,21 @@ class CriarEventoCommand(Commando):
         self.sistema = sistema
     
     def executar(self):
-        self.sistema.criar_evento()
+        try:
+            print("\n--- Criação de Novo Evento ---")
+            nome = input("Nome do evento: ")
+            data = input("Data (dd/mm/aaaa): ")
+
+            sucesso, mensagem = self.sistema.criar_evento(nome, data)
+            
+            if sucesso:
+                print(f"SUCESSO: {mensagem}")
+            else:
+                print(f"FALHA: {mensagem}")
+        except Exception as e:
+           
+            print(f"Ocorreu um erro inesperado no comando: {e}")
+
 
 class CancelarEventoCommand(Commando):
     def __init__(self, sistema : 'SistemaFacade'):
@@ -47,8 +61,10 @@ class ListarFeedbacksEventoCommand(Commando):
         self.sistema.listar_feedbacks_evento()
 
 class AdicionarSpeakerEventoCommand(Commando):
+    # Sugestão: renomear 'sistema' para 'facade' torna o código mais claro
     def __init__(self, sistema: 'SistemaFacade'):
         self.sistema = sistema
+
     def executar(self):
         self.sistema.adicionar_speaker_evento()
 
@@ -76,7 +92,10 @@ class AdicionarParticipanteEventoCommand(Commando):
     def __init__(self, sistema : 'SistemaFacade'):
         self.sistema = sistema
     def executar(self):
+
         self.sistema.adicionar_participante_evento()
+        
+
 
 class ListarParticipanteEventoCommand(Commando):
     def __init__(self, sistema : 'SistemaFacade'):
