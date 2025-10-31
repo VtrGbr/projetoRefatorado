@@ -76,9 +76,12 @@ class SistemaEventos:
             return None
 
     def criar_evento(self, nome : str , data : str):
+        
         if not nome:
             raise NomeInvalidoError("O nome não pode estar vazio")
-        
+        if nome.isdigit():
+            raise NomeInvalidoError("O nome do evento não pode ser um número!")
+
         if not data:
             raise DataInvalidaError("A data do evento não pode estar vazia")
         
@@ -248,25 +251,38 @@ class SistemaEventos:
     def adicionar_speaker_evento(self):
         sel = self.selecionar_evento()
         if not sel: return
+        try:    
+            # Coleta as informações do palestrante
+            nome = input("Nome do palestrante: ")
+            if not nome:
+                raise NomeInvalidoError("O campo nome não pode estar vazio!")
+            if nome.isdigit():
+                raise NomeInvalidoError("O nome não pode ser um número!")
+            bio = input("Bio: ")
 
-        # Coleta as informações do palestrante
-        nome = input("Nome do palestrante: ")
-        bio = input("Bio: ")
-        email = input("Email: ")
-        topico = input("Tópico da palestra: ")
-        horario = input("Horário (ex: 14:30): ")
+            if not bio or bio.isdigit():
+                raise NomeInvalidoError("O campo não pode ser um número ou estar vazio!")
+            email = input("Email: ")
 
-        # Estrutura os dados para salvar no Firebase
-        novo_speaker_data = {
-            'nome': nome,
-            'bio': bio,
-            'email': email,
-            'topico': topico,
-            'horario': horario
-        }
+            if "@" not in email:
+                raise EmailInvalidoError("O email deve conter o @!")
+            topico = input("Tópico da palestra: ")
+
+            if not topico or topico.isdigit():
+                raise TopicoInvalidoError("Tópico não pode ser um número ou estar vazio!")
+            horario = input("Horário (ex: 14:30): ")
+
+            # Estrutura os dados para salvar no Firebase
+            novo_speaker_data = {
+                'nome': nome,
+                'bio': bio,
+                'email': email,
+                'topico': topico,
+                'horario': horario
+            }
 
         # Salva o novo palestrante no Firebase
-        try:
+        
             self.eventos_ref.child(sel).child('Palestrante').push(novo_speaker_data)
             print(f"Palestrante '{nome}' adicionado com sucesso ao evento '{sel}'.")
         except Exception as e:
@@ -323,10 +339,29 @@ class SistemaEventos:
     def adicionar_participante_evento(self):
         sel = self.selecionar_evento()
         if not sel: return
-        nome = input("Nome: ") 
-        email = input("Email: ")
-        tipo = input("Tipo de participante (Regular/Vip/Estudante): ")
-        
+        try :
+            nome = input("Nome: ") 
+            
+            if not nome:
+                raise NomeInvalidoError("O campo de nome não pode estar vazio")
+            
+            if nome.isdigit():
+                raise NomeInvalidoError("O nome do palestrante não pode conter números!")
+            
+            
+            email = input("Email: ")
+            if '@' not in email:
+                raise EmailInvalidoError("O email deve conter o caracter @ ")
+            
+            tipo = input("Tipo de participante (Regular/Vip/Estudante): ")
+
+            if not tipo:
+                raise NomeInvalidoError("O campo 'tipo' não pode estar vazio")
+            
+            if tipo.isdigit():
+                raise NomeInvalidoError(" O tipo do participante não pode ser um número")
+        except Exception as e:
+            print(f"Erro inesperado: {e}")    
         try:
             # Usa a Factory para criar o objeto do tipo correto
             participante = ParticipanteFactory.criar_participante(tipo, nome, email)
@@ -381,19 +416,33 @@ class SistemaEventos:
     def adicionar_fornecedor_evento(self):
         sel = self.selecionar_evento()
         if not sel: return
+        try:    
+            nome = input("Nome do fornecedor: ")
 
-        nome = input("Nome do fornecedor: ")
-        servico = input("Serviço prestado: ")
-        contato = input("Contato (opcional): ")
+            if not nome:
+                raise NomeInvalidoError("O campo nome não pode estar vazio")
+            if nome.isdigit():
+                raise NomeInvalidoError("O nome do fonecedor não pode ser um número")
+            
+            servico = input("Serviço prestado: ")
+            if not servico:
+                raise ServicoInvalidoError("Informe o serviço prestado!")
+            
+            contato = input("Telefone[(xx)-xxxx-xxxx] ou email (opcional): ")
 
-        fornecedor_data = {
-            'nome': nome,
-            'servico': servico,
-            'contato': contato,
-            'status': 'Pendente'
-        }
+            if contato:
+                is_email = "@" in contato
+                is_celular = contato.replace('-', '').replace('(', '').replace(')', '').replace(' ', '').isdigit()
+                if not is_email and not is_celular:
+                    raise ContatoInvalidoError("O contato deve ser um e-mail válido (com '@') ou um número de telefone (apenas dígitos).")
 
-        try:
+            fornecedor_data = {
+                'nome': nome,
+                'servico': servico,
+                'contato': contato,
+                'status': 'Pendente'
+            }
+
             # Adiciona o fornecedor com um ID único
             self.eventos_ref.child(sel).child('fornecedores').push(fornecedor_data)
             print(f"Fornecedor '{nome}' adicionado com sucesso.")
@@ -448,6 +497,11 @@ class SistemaEventos:
 
         try:
             valor = float(input("Digite o valor do orçamento: R$ "))
+            if not valor:
+                raise ValorInvalidoError("O campo valor não pode estar vazio!")
+            
+            if valor < 0:
+                raise ValorInvalidoError("Digite um valor válido")
             # Guarda o orçamento diretamente no nó do evento
             self.eventos_ref.child(sel).update({'orcamento': valor})
             print(f"Orçamento de R${valor:.2f} definido para o evento '{sel}'.")
@@ -474,9 +528,21 @@ class SistemaEventos:
 
         print(f"\nSaldo atual: R${saldo:.2f}")
 
-        descricao = input("Descrição da despesa: ")
+        try:
+            descricao = input("Descrição da despesa: ")
+
+            if not descricao:
+                raise NomeInvalidoError("O campo descrição não pode estar vazio!")
+            
+            if descricao.isdigit():
+                raise NomeInvalidoError("A descrição não pode ser um número")
+        except Exception as e:
+            print(f"Erro inesperado: {e}")
+            
         try:
             valor = float(input("Valor da despesa: R$ "))
+            if valor < 0 or not valor:
+                raise ValueError()
         except ValueError:
             print("Erro: Por favor, digite um número válido.")
             return
@@ -484,18 +550,31 @@ class SistemaEventos:
         if valor > saldo:
             print(f"Erro: A despesa de R${valor:.2f} excede o saldo disponível de R${saldo:.2f}.")
             return
+        try:    
+            categoria = input("Categoria da despesa (ex: Catering, Marketing, Local): ")
 
-        categoria = input("Categoria da despesa (ex: Catering, Marketing, Local): ")
-        data = input("Data da despesa (dd/mm/aaaa): ")
+            if not categoria:
+                raise CategoriaInvalidaError("A categoria não pode ser vazia!")
+            
+            if categoria.isdigit():
+                raise CategoriaInvalidaError("Categoria não pode ser um número")
+            try:
+                data = input("Data da despesa (dd/mm/aaaa): ")
+                dataEvento = datetime.strptime(data, '%d/%m/%Y').date()
 
-        despesaDados = {
-            'descricao': descricao,
-            'valor': valor,
-            'data': data,
-            'categoria': categoria
-        }
+                if dataEvento < datetime.now().date():
+                    raise DataInvalidaError(" A data não pode ser uma ja ocorrida")
+            except ValueError:
+                raise DataInvalidaError("O formato da data deve ser dd/mm/aaaa e a data deve ser válida")
+            
+            despesaDados = {
+                'descricao': descricao,
+                'valor': valor,
+                'data': data,
+                'categoria': categoria
+            }
 
-        try:
+        
             self.eventos_ref.child(sel).child('despesas').push(despesaDados)
             print("Despesa registada com sucesso.")
         except Exception as e:
@@ -577,20 +656,35 @@ class SistemaEventos:
 
     def adicionar_local(self):
         print("\n---Adicionar um novo local---")
-        nome = input("Nome do local: ")
-        endereco = input("Endereço: ")
         try:
-            capacidade = int(input("Capacidade: "))
-        except ValueError:
-            print("Erro: A capacidade deve ser um número")
-            return
+            nome = input("Nome do local: ")
+
+            if not nome:
+                raise NomeInvalidoError("O campo nome não pode estar vazio")
+            if nome.isdigit():
+                raise NomeInvalidoError("A localidade não pode ser um número")
+            localExistente = self.locais_ref.child(nome).get()
+
+            if localExistente:
+                raise LocalJaExistenteError("Este local já foi adicionado")
+            endereco = input("Endereço: ")
+
+            if not endereco:
+                raise EnderecoInvalidoError("O campo de endereço não pode estar vazio!")
         
-        #Guardar no fire base
-        local_data={
-            'nome': nome,
-            'endereco': endereco,
-            'capacidade': capacidade
-        }
+        
+            capacidade = int(input("Capacidade: "))
+            
+            if not capacidade.is_integer() or capacidade < 0:
+                raise CapacidadeInvalidaError("Capacidade deve ser um número válido")
+            #Guardar no fire base
+            local_data={
+                'nome': nome,
+                'endereco': endereco,
+                'capacidade': capacidade
+            }
+        except Exception as e:
+            print(f"Erro inesperado: {e}")
 
         try:
             self.locais_ref.child(nome).set(local_data)
@@ -631,6 +725,9 @@ class SistemaEventos:
 
         try:
             index = int(input("Selecione o local pelo número: "))
+
+            if index < 0:
+                raise IndexError
             local_escolhido = locais_lista[index]
 
             #preparar os dados do local para guardar no evento

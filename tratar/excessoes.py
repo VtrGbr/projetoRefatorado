@@ -22,11 +22,33 @@ class TopicoInvalidoError(ErroBase):
 
 class HorarioInvalidoError(ErroBase):
     pass
+
+class ServicoInvalidoError(ErroBase):
+    pass
+
+class ContatoInvalidoError(ErroBase):
+    pass
+
+class EnderecoInvalidoError(ErroBase):
+    pass
+
+class LocalJaExistenteError(ErroBase):
+    pass
+
+class CapacidadeInvalidaError(ErroBase):
+    pass
+
+class ValorInvalidoError(ErroBase):
+    pass
+class CategoriaInvalidaError(ErroBase):
+    pass
+
+class DescricaoInvalidaError(ErroBase):
+    pass
+
+class TopicoInvalidoError(ErroBase):
+    pass
 class OrcamentoInvalidoError(ErroBase):
-    def __init__(self,saldoDisponivel, despesa ):
-        self.saldoDisponivel = saldoDisponivel
-        self.despesa = despesa
-        mensagem = f"O valor R$ {despesa:.2f} excede o valor disponível R$ {saldoDisponivel:.2f}"      
-        super().__init__(mensagem)
+    pass
 
 
