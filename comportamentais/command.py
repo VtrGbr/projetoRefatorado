@@ -9,23 +9,17 @@ class Commando(ABC):
 
 # --- Gerenciar evento
 class CriarEventoCommand(Commando):
-    def __init__(self, sistema : 'SistemaFacade'):
+    def __init__(self, sistema: 'SistemaFacade'): # Corrigido para receber a facade
         self.sistema = sistema
-    
+
     def executar(self):
         try:
-            print("\n--- Criação de Novo Evento ---")
-            nome = input("Nome do evento: ")
-            data = input("Data (dd/mm/aaaa): ")
-
-            sucesso, mensagem = self.sistema.criar_evento(nome, data)
-            
-            if sucesso:
-                print(f"SUCESSO: {mensagem}")
-            else:
-                print(f"FALHA: {mensagem}")
+    
+            self.sistema.criar_evento()
+        except (NomeInvalidoError, DataInvalidaError, EventoJaExistenteError, OrcamentoInvalidoError) as e:
+            print(f"FALHA NA CRIAÇÃO: {e}")
         except Exception as e:
-           
+       
             print(f"Ocorreu um erro inesperado no comando: {e}")
 
 
@@ -61,7 +55,6 @@ class ListarFeedbacksEventoCommand(Commando):
         self.sistema.listar_feedbacks_evento()
 
 class AdicionarSpeakerEventoCommand(Commando):
-    # Sugestão: renomear 'sistema' para 'facade' torna o código mais claro
     def __init__(self, sistema: 'SistemaFacade'):
         self.sistema = sistema
 

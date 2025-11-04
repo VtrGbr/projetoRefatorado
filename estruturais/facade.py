@@ -18,15 +18,8 @@ class SistemaFacade:
         self._sistema.ExecutarEstado()
     
     # === Métodos do menu principal
-    def criar_evento(self, nome : str, data : str):
-        try:
-            self._sistema.criar_evento(nome, data)
-            return True, "Evento criado com sucesso"
-        except (NomeInvalidoError,DataInvalidaError,EventoJaExistenteError) as e:
-            print(f"FACADE: Erro capturado - {e}")
-            return False, str(e)
-        except Exception as e:
-            return False, "Erro inesperado"
+    def criar_evento(self):
+        self._sistema.criar_evento()
     
     def cancelar_evento(self):
         

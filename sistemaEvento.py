@@ -75,45 +75,57 @@ class SistemaEventos:
             print("Seleção inválida.")
             return None
 
-    def criar_evento(self, nome : str , data : str):
-        
+    # No ficheiro sistemaEvento.py
+# (Lembre-se de importar datetime e as suas exceções no topo)
+
+    def criar_evento(self):
+        print("\n--- Criação de Novo Evento ---")
+   
+        nome = input("Nome do evento: ")
         if not nome:
             raise NomeInvalidoError("O nome não pode estar vazio")
         if nome.isdigit():
             raise NomeInvalidoError("O nome do evento não pode ser um número!")
-
+        
+        eventoExistente = self.eventos_ref.child(nome).get()
+        if eventoExistente:
+            raise EventoJaExistenteError(f"Já existe um evento com o nome: {nome}")
+        
+        data = input("Data (dd/mm/aaaa): ")
         if not data:
             raise DataInvalidaError("A data do evento não pode estar vazia")
         
-        eventoExistente = self.eventos_ref.child(nome).get()
-
-        if eventoExistente:
-            raise EventoJaExistenteError(f" Já existe um evento como nome: {nome}")
-        
         try:
             dataEvento = datetime.strptime(data, '%d/%m/%Y').date()
-
             if dataEvento < datetime.now().date():
-                raise DataInvalidaError(" A data do evento não pode ser uma ja ocorrida")
+                raise DataInvalidaError("A data do evento não pode ser uma data no passado.")
         except ValueError:
-            raise DataInvalidaError("O formato da data deve ser dd/mm/aaaa e a data deve ser válida")
-        try:
-            # Usa o Builder para construir o objeto do evento
+            raise DataInvalidaError("O formato da data deve ser dd/mm/aaaa e a data deve ser válida.")
+        
+        orcamento_str = input("Definir orçamento inicial (opcional): ")
 
+        try:
             builder = EventoBuilder(nome, data)
             
-            orcamento_str = input("Definir orçamento inicial (opcional, ex: 5000): ")
             if orcamento_str:
-                builder.com_orcamento(orcamento_str)
-            
-            # Constrói o dicionário final
+                try:
+                    builder.com_orcamento(orcamento_str)
+                except ValueError:
+                    
+                    raise OrcamentoInvalidoError(f"Valor de orçamento '{orcamento_str}' inválido. Use apenas números.")
+
             novo_evento_data = builder.build()
-            
-            # Salva no Firebase
             self.eventos_ref.child(nome).set(novo_evento_data)
-            print(f"Evento '{nome}' criado com sucesso usando o padrão Builder.")
+            
+            
+            print(f"SUCESSO: Evento '{nome}' criado com sucesso!")
+
+        except OrcamentoInvalidoError as e:
+            
+            raise e
         except Exception as e:
-            print(f"Erro ao criar evento: {e}")
+            # Apanha erros de gravação no Firebase
+            raise Exception(f"Erro ao salvar o evento no Firebase: {e}")
 
     def cancelar_evento(self):
         nome_evento = self.selecionar_evento()
