@@ -1,6 +1,5 @@
-'''
-    Este arquivo, conterá as classes para os tratamentos de excessões específicas para a maioria dos métodos
-'''
+
+#Este arquivo, conterá as classes para os tratamentos de excessões específicas para a maioria dos métodos
 
 class ErroBase(Exception):
     pass
