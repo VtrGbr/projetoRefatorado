@@ -77,10 +77,10 @@ Após concluir a configuração, execute o ficheiro principal para iniciar o men
 python evento.py
 ```
 # Arquitetura e Padrões de Projeto
-O projeto foi desenhado com uma arquitetura limpa, separando as responsabilidades em diferentes camadas e aplicando um conjunto completo de padrões de projeto para garantir um código flexível e de alta qualidade.
+O projeto foi desenhado com uma arquitetura limpa e multi-camada, separando as responsabilidades para garantir um código flexível, manutenível e de alta qualidade.
 
-Estrutura de Ficheiros
-O projeto está organizado da seguinte forma:
+## Estrutura de Ficheiros
+O código-fonte está organizado nas seguintes pastas principais:
 
 - criacionais/: Contém os padrões responsáveis pela criação de objetos (Singleton, Factory, Builder).
 
@@ -88,29 +88,413 @@ O projeto está organizado da seguinte forma:
 
 - estruturais/: Contém os padrões que lidam com a composição e a relação entre objetos (Decorator, Facade, Adapter).
 
+- tratar/: Onde as exceções personalizadas (exceptions.py) podem residir.
+
 - sistemaEvento.py: O coração do sistema, contendo a lógica de negócio principal.
 
 - evento.py: O ponto de entrada da aplicação, responsável por iniciar a Facade.
 
-## Padrões de projeto utilizados
+### Padrões de Projeto Utilizados
+Abaixo está um detalhe de cada padrão implementado, onde encontrá-lo e como ele funciona.
 
-### Padrões de Projeto Criacionais Utilizados
-- Singleton (firebaseServico.py): Garante uma única instância da ligação com o Firebase, otimizando recursos e a gestão do estado da ligação.
+## Padrões Criacionais
+Padrões que abstraem o processo de instanciação de objetos.
 
-- Factory Method (factory.py): Utilizado para criar diferentes tipos de Participante. Centraliza a lógica de instanciação, permitindo a fácil adição de novos tipos sem alterar o código cliente.
+1. Singleton
 
-- Builder (builder.py): Empregado para construir o objeto de Evento de forma passo a passo, simplificando a criação de um objeto complexo com múltiplos atributos.
+- Onde: criacionais/firebaseServico.py
 
-### Padrões de Projeto Comportamentais Utilizados
-- State (state.py): Gere o fluxo da aplicação como uma máquina de estados finitos. Cada menu (Menu Principal, Gerir Eventos, etc.) é um estado, o que organiza a navegação e elimina a necessidade de menus aninhados.
+- Propósito: Garante que existe apenas uma única instância da ligação com o Firebase em toda a aplicação. Isto otimiza recursos e evita conflitos de ligação.
 
-- Command (command.py): Encapsula cada ação do utilizador (como "criar evento" ou "listar participantes") num objeto. Isto elimina longos blocos if/elif nos menus e desacopla quem invoca a ação de quem a executa.
+- Como: O método __new__ da classe FirebaseServico verifica se uma instância (_instance) já existe. Se não, ele cria uma nova, inicia a ligação com o Firebase e guarda as referências da base de dados. Em todas as chamadas subsequentes, ele retorna a instância que já existe.
 
-- Observer (observer.py): Usado para desacoplar o cancelamento de um evento da notificação aos participantes. Quando um evento é cancelado, ele notifica os "observadores" (como o serviço de notificação) sem precisar de conhecer os detalhes da sua implementação.
+```python
 
-### Padrões de Projeto Estruturais Utilizados
-- Facade (facade.py): Fornece um ponto de entrada único e simplificado para o sistema. O ficheiro evento.py interage apenas com a Facade, que esconde toda a complexidade de inicialização e configuração do sistema.
+# em criacionais/firebaseServico.py
+class FirebaseServico:
+    _instance = None
+    def __new__(cls):
+        if cls._instance is None:
+            cls._instance = super(FirebaseServico, cls).__new__(cls)
+            # ... (lógica de inicialização do Firebase) ...
+            cls._instance.eventos_ref = db.reference('eventos')
+        return cls._instance
 
-- Decorator (decorator.py): Adiciona benefícios (como "Camisa" ou "Certificado") a objetos Participante dinamicamente. Está integrado com a Factory para que os participantes já sejam criados com os seus benefícios padrão.
+firebase_service_instance = FirebaseServico() # A instância única
+```
+2. Factory Method
 
-- Adapter (adapter.py): Atua como um "tradutor" para permitir que o sistema importe dados de fontes externas com formatos incompatíveis, como ficheiros CSV de locais, sem alterar a lógica de negócio existente.
+- Onde: criacionais/factory.py
+
+- Propósito: Centraliza a lógica de criação de diferentes tipos de Participante (Regular, VIP, Estudante). O cliente (neste caso, o SistemaEventos) pede um participante de um "tipo" sem precisar de saber qual classe concreta será instanciada.
+
+- Como: Um método estático criar_participante recebe o tipo e retorna a instância da classe correta (ParticipanteVIP, ParticipanteRegular, etc.).
+
+```python
+
+# em criacionais/factory.py
+class ParticipanteFactory:
+    @staticmethod
+    def criar_participante(tipo, nome, email):
+        if tipo.lower() == 'vip':
+            participanteBase = ParticipanteVIP(nome, email)
+        elif tipo.lower() == 'regular':
+            participanteBase =  ParticipanteRegular(nome, email)
+        # ...
+        return participanteDecorator # Retorna o participante decorado
+```
+3. Builder
+
+- Onde: criacionais/builder.py
+
+- Propósito: Simplifica a criação de um objeto complexo (neste caso, o dicionário de dados de um Evento) passo a passo. Permite que o mesmo processo de construção crie representações diferentes (ex: um evento com ou sem orçamento).
+
+- Como: A classe EventoBuilder é inicializada com os dados essenciais (nome, data). Métodos como com_orcamento(valor) podem ser encadeados para adicionar partes opcionais. O método build() finaliza o processo e retorna o dicionário completo, pronto para o Firebase.
+
+```python
+
+# em criacionais/builder.py
+class EventoBuilder:
+    def __init__(self, nome, data):
+        self._evento_data = { 'nome': nome, 'data': data, ... }
+
+    def com_orcamento(self, valor):
+        self._evento_data['orcamento'] = float(valor)
+        return self # Retorna self para encadeamento
+    
+    def build(self):
+        return self._evento_data
+```
+## Padrões Comportamentais
+Padrões que gerem a comunicação e a distribuição de responsabilidades entre os objetos.
+
+1. State
+
+- Onde: comportamentais/state.py
+
+- Propósito: Gere o fluxo da aplicação como uma máquina de estados finitos. Cada menu (Menu Principal, Gerir Eventos, etc.) é um "Estado". Isto organiza a navegação, elimina menus aninhados e torna claro o fluxo do programa.
+
+- Como: O SistemaEventos (o Contexto) mantém uma referência ao estado atual (self._state). Cada classe de estado (ex: MenuPrincipalState) tem um método run() que contém o seu próprio loop de menu. Quando o utilizador escolhe uma opção de navegação, o estado chama self.sistema.set_state(...) para fazer a transição para o próximo estado.
+
+```python
+
+# em comportamentais/state.py
+class MenuPrincipalState(MaquinaEstados):
+    def run(self):
+        # ... (mostra o menu) ...
+        if op == '1':
+            # Transição para o próximo estado
+            self.sistema.set_state(GestaoEventoState(self.sistema))
+            break
+```
+
+2. Command
+
+- Onde: comportamentais/command.py
+
+- Propósito: Encapsula cada ação do utilizador (como "criar evento") num objeto Commando. Isto desacopla quem invoca a ação (o menu, no State) de quem a executa (a Facade). Elimina a necessidade de blocos if/elif gigantes.
+
+- Como: Cada estado (state.py) cria um dicionário que mapeia a escolha do utilizador (ex: '1') para uma instância de um Commando (ex: CriarEventoCommand(facade)). Quando o utilizador faz uma escolha, o estado apenas executa o comando (comando.executar()), sem precisar de saber o que ele faz.
+
+```python
+
+# em comportamentais/command.py
+class CriarEventoCommand(Commando):
+    def __init__(self, facade: 'SistemaFacade'):
+        self.facade = facade
+    def executar(self):
+        self.facade.criar_evento() # Delega a chamada para a Facade
+```
+
+3. Observer
+
+- Onde: comportamentais/observer.py e sistemaEvento.py
+
+- Propósito: Desacopla a lógica de cancelamento de um evento da lógica de notificação. Quando um evento é cancelado, o SistemaEventos (o Subject) notifica todos os Observers (como o NotificacaoObservador) que estão "anexados" a ele.
+
+- Como: O SistemaEventos mantém uma lista _observadores. A Facade anexa o NotificacaoObservador a esta lista. Quando cancelar_evento é chamado, o SistemaEventos chama self.notificar(...), que itera sobre a lista e chama o método atualizar() de cada observador.
+
+```python
+
+# em comportamentais/observer.py
+class NotificacaoObservador:
+    def atualizar(self, nomeEvento, listaEmail):
+        # ... (lógica para criar notificações no Firebase) ...
+        self.notificacoes_ref.push(notificacaoData)
+
+# em sistemaEvento.py
+class SistemaEventos:
+    def anexar(self, observador):
+        self._observadores.append(observador)
+    
+    def notificar(self, nomeEvento, listaEmail):
+        for observador in self._observadores:
+            observador.atualizar(nomeEvento, listaEmail)
+```
+## Padrões Estruturais
+Padrões que lidam com a composição e a relação entre objetos.
+
+1. Facade
+
+- Onde: estruturais/facade.py
+
+- Propósito: Fornece um ponto de entrada único e simplificado para todo o subsistema. O cliente (o evento.py) interage apenas com a SistemaFacade, que esconde toda a complexidade de inicializar o SistemaEventos, configurar o Observer, etc..
+
+- Como: A SistemaFacade é a única classe que o evento.py importa. No seu __init__, a Facade cria a instância do SistemaEventos e chama _configurarServicos() para anexar os observadores. O método iniciarAplicacao() da facade é o único que o evento.py chama para executar o programa.
+
+```python
+
+# em estruturais/facade.py
+class SistemaFacade:
+    def __init__(self):
+        self._sistema = SistemaEventos()
+        self._configurarServicos()
+
+    def _configurarServicos(self):
+        notificacaoServico = NotificacaoObservador(...)
+        self._sistema.anexar(notificacaoServico)
+    
+    def iniciarAplicacao(self):
+        self._sistema.ExecutarEstado()
+```
+2. Decorator
+
+- Onde: estruturais/decorator.py e criacionais/factory.py
+
+- Propósito: Adiciona benefícios e responsabilidades extras (como "Camisa" ou "Certificado") a objetos Participante dinamicamente. Isto evita a "explosão de subclasses" (ex: VipComCamisa, RegularComCertificado, etc.).
+
+- Como: O ParticipanteDecorator herda de Participante e "embrulha" um objeto participante. Decoradores concretos (ex: BeneficioCamisaDecorator) sobrescrevem o método to_dict() para adicionar os benefícios aos dados. O padrão é usado pela ParticipanteFactory, que aplica os decoradores padrão automaticamente com base no tipo de participante.
+
+```python
+
+# em estruturais/decorator.py
+class ParticipanteDecorator(Participante):
+    def __init__(self, participanteEmbrulhado):
+        self._participante = participanteEmbrulhado
+    
+    def __getattr__(self, name): # Delega atributos como 'ingresso'
+        return getattr(self._participante, name)
+
+class BeneficioCamisaDecorator(ParticipanteDecorator):
+    def to_dict(self):
+        data = self._participante.to_dict()
+        data['beneficios'] = data.get('beneficios', []) + ['Camisa Oficial']
+        return data
+```
+3. Adapter
+
+- Onde: estruturais/adapter.py
+
+- Propósito: Atua como um "tradutor" para permitir que o sistema importe dados de fontes externas com interfaces incompatíveis (como ficheiros CSV).
+
+- Como: Classes como LocaisCsvAdapter ou ParticipanteCsvAdapter são criadas. Elas sabem como ler um formato de ficheiro específico (ex: um CSV com colunas nome_do_espaco, morada_completa) e "traduzem" esses dados para o formato que o SistemaEventos entende (um dicionário com chaves nome, endereco, etc.).
+
+```python
+
+# em estruturais/adapter.py (exemplo do adaptador de fornecedor)
+class FornecedorCsvAdapter:
+    def obter_fornecedores(self):
+        fornecedores_adaptados = []
+        with open(self._caminho_arquivo, ...) as arquivo:
+            leitor_csv = csv.DictReader(arquivo)
+            for linha in leitor_csv:
+                # "Tradução" dos dados do CSV para o formato do sistema
+                fornecedor_data = {
+                    'nome': linha['fornecedor'],
+                    'servico': linha['servico'],
+                    'contato': linha['contato'],
+                    'status': 'Pendente'
+                }
+                fornecedores_adaptados.append(fornecedor_data)
+        return fornecedores_adaptados
+```
+# Implementação do tratamento de exceções
+O sistema usa exceções personalizadas para garantir que a lógica de negócio permaneça limpa e que o utilizador receba feedback claro.
+
+## Tratamentos usados
+ No arquivo 'excessões.py' estão classes que eu usei para fazer tratamentos específicos:
+
+Propósito: Este ficheiro centraliza a definição de todos os erros que são específicos da lógica do seu sistema. Em vez de usar erros genéricos como ValueError para tudo, você criou erros nomeados que descrevem exatamente o que deu errado.
+
+Classe Base (ErroBase): Esta classe ErroBase que herda de Exception. Permite que as outras camadas do código (como a Facade) possam, se necessário, apanhar qualquer erro de negócio usando um único except ErroDeNegócio as e:, tornando o código mais limpo.
+
+### Exceções Específicas:
+
+- EventoJaExistenteError, DataInvalidaError, NomeInvalidoError: São usadas para validação de dados na entrada do utilizador.
+
+- OrcamentoInvalidoError, EmailInvalidoError: Permitem um controle muito específico sobre diferentes tipos de falhas, cada uma podendo ser tratada de forma diferente se necessário.
+
+
+### Usados em código: 
+
+## Específicos: 
+
+Onde: sistemaEvento.py
+
+- EmailInvalidoError:
+
+```python
+
+    def adicionar_speaker_evento(self):
+        sel = self.selecionar_evento()
+        if not sel: return
+        try:    
+            # Coleta as informações do palestrante
+            nome = input("Nome do palestrante: ")
+            if not nome:
+                raise NomeInvalidoError("O campo nome não pode estar vazio!")
+            if nome.isdigit():
+                raise NomeInvalidoError("O nome não pode ser um número!")
+            bio = input("Bio: ")
+
+            if not bio or bio.isdigit():
+                raise NomeInvalidoError("O campo não pode ser um número ou estar vazio!")
+            email = input("Email: ")
+
+            if "@" not in email:
+                raise EmailInvalidoError("O email deve conter o @!")
+            topico = input("Tópico da palestra: ")
+            ...
+
+```
+
+- EventoJaExistenteError, NomeInvalidoError, DataInvalidaError, OrcamentoInvalidoError e genérica (Exeception): 
+
+```python
+
+    def criar_evento(self):
+        print("\n--- Criação de Novo Evento ---")
+   
+        nome = input("Nome do evento: ")
+        if not nome:
+            raise NomeInvalidoError("O nome não pode estar vazio")
+        if nome.isdigit():
+            raise NomeInvalidoError("O nome do evento não pode ser um número!")
+        
+        eventoExistente = self.eventos_ref.child(nome).get()
+        if eventoExistente:
+            raise EventoJaExistenteError(f"Já existe um evento com o nome: {nome}")
+        
+        data = input("Data (dd/mm/aaaa): ")
+        if not data:
+            raise DataInvalidaError("A data do evento não pode estar vazia")
+        
+        try:
+            dataEvento = datetime.strptime(data, '%d/%m/%Y').date()
+            if dataEvento < datetime.now().date():
+                raise DataInvalidaError("A data do evento não pode ser uma data no passado.")
+        except ValueError:
+            raise DataInvalidaError("O formato da data deve ser dd/mm/aaaa e a data deve ser válida.")
+        
+        orcamento_str = input("Definir orçamento inicial (opcional): ")
+
+        try:
+            builder = EventoBuilder(nome, data)
+            
+            if orcamento_str:
+                try:
+                    builder.com_orcamento(orcamento_str)
+                except ValueError:
+                    
+                    raise OrcamentoInvalidoError(f"Valor de orçamento '{orcamento_str}' inválido. Use apenas números.")
+
+            novo_evento_data = builder.build()
+            self.eventos_ref.child(nome).set(novo_evento_data)
+            
+            
+            print(f"SUCESSO: Evento '{nome}' criado com sucesso!")
+
+        except OrcamentoInvalidoError as e:
+            
+            raise e
+        except Exception as e:
+            # Apanha erros de gravação no Firebase
+            raise Exception(f"Erro ao salvar o evento no Firebase: {e}")
+
+```
+## Nativos do python
+
+Onde: estruturais/adapter.py
+
+- FileNotFoundError
+
+```python
+
+class FornecedorCsvAdapter:
+    def __init__(self, caminho_arquivo):
+        self._caminho_arquivo = caminho_arquivo
+    
+    def obterFornecedores(self):
+        
+        fornecedores = []
+
+        try:
+            with open(self._caminho_arquivo, mode='r', encoding='utf-8') as arquivo:
+                leitor_csv = csv.DictReader(arquivo)
+                
+                print("\nA ler ficheiro CSV de fornecedores...")
+                for linha in leitor_csv:
+                    try:
+                        fornecedor_data = {
+                            'nome': linha['fornecedor'],
+                            'servico': linha['servico'], 
+                            'contato': linha['contato'],
+                            'status': 'Pendente'  
+                        }
+                        
+                        fornecedores.append(fornecedor_data)
+
+                    except KeyError as e:
+                        print(f"Erro de Adaptador: A coluna {e} não foi encontrada no arquivo CSV. A verificar a próxima linha.")
+                        continue
+
+            return fornecedores
+
+        except FileNotFoundError:
+            print(f"Erro do Adaptador: arquivo não encontrado em '{self._caminho_arquivo}'")
+            return None
+        except Exception as e:
+            print(f"Erro do Adaptador ao processar o arquivo: {e}")
+            return None
+
+
+```
+
+- ValueError
+
+Onde: sistemaEvento.py
+
+```python
+
+    def selecionar_evento(self):
+        eventos = self.eventos_ref.get()
+        if not eventos:
+            print("Nenhum evento registado no Firebase.")
+            return None
+
+        eventos_lista = list(eventos.items())
+
+        print("\nEventos disponíveis:")
+        for i, (nome_evento, dados_evento) in enumerate(eventos_lista):
+           
+            data_evento = dados_evento.get('data', 'Sem data')
+            print(f"{i}. {nome_evento} (Data: {data_evento})")
+
+        try:
+            idx_str = input("Selecione o evento pelo número: ")
+         
+            if not idx_str.isdigit():
+                print("Seleção inválida. Por favor, digite um número.")
+                return None
+            
+            idx = int(idx_str)
+            if 0 <= idx < len(eventos_lista):
+                return eventos_lista[idx][0]
+            else:
+                print("Seleção inválida.")
+                return None
+                
+        except ValueError: 
+            print("Seleção inválida.")
+            return None
+```
